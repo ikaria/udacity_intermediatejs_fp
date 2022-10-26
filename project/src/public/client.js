@@ -6,7 +6,6 @@ let store = {
 
 // add our markup to the page
 const root = document.getElementById('root')
-fetch(`http://localhost:3000/apod`)
 
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState)
@@ -69,16 +68,12 @@ const ImageOfTheDay = (apod) => {
 
     // If image does not already exist, or it is not from today -- request it again
     const today = new Date()
-    //const photodate = new Date(apod.image.date)
-    //console.log(photodate.getDate(), today.getDate());
-
-    //console.log(photodate.getDate() === today.getDate());
-    if (!apod || apod.image.date === today.getDate()) {
+    if (!apod || apod.image.date !== today.getDate()) {
         getImageOfTheDay(store)
-        console.log(store);
         apod = store.apod;
     }
 
+    //no image yet, return
     if (apod === '')
         return;
 
@@ -103,16 +98,8 @@ const ImageOfTheDay = (apod) => {
 const getImageOfTheDay = (state) => {
     let { apod } = state
 
-    /*
-    if (apod === '')
-        return null;
-    */
-
     fetch(`http://localhost:3000/apod/`)
         .then(res => res.json())
         .then(apod => updateStore(store, { apod }));
-    //.then((data) => { console.log(data) })
-    //.then((data) => { return data });
 
-    //return data
 }
