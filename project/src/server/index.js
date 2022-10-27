@@ -25,9 +25,9 @@ app.get('/apod', async (req, res) => {
     }
 });
 
-app.get('/manifest', async (req, res) => {
+app.get('/manifest/:rover', async (req, res) => {
     try {
-        let manifest = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=${process.env.API_KEY}`)
+        let manifest = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/${req.params.rover}?api_key=${process.env.API_KEY}`)
             .then(res => res.json())
         res.send({ manifest })
     } catch (err) {

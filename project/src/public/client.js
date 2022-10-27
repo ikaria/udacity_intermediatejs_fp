@@ -2,6 +2,7 @@ let store = {
     user: { name: "Student" },
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
+    manifest: {}
 }
 
 // add our markup to the page
@@ -10,6 +11,30 @@ const root = document.getElementById('root')
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState)
     render(root, store)
+}
+
+const updateManifest = (store, newState, rover) => {
+    let manifest;
+    switch (rover) {
+        case 'curiosity':
+            const curiosity = newState.manifest.photo_manifest;
+            manifest = Object.assign(store.manifest, { curiosity });
+            break;
+        case 'opportunity':
+            const opportunity = newState.manifest.photo_manifest;
+            manifest = Object.assign(store.manifest, { opportunity });
+            break;
+        case 'spirit':
+            const spirit = newState.manifest.photo_manifest;
+            manifest = Object.assign(store.manifest, { spirit });
+            break;
+        default:
+            break;
+    }
+
+    store = Object.assign(store, { manifest })
+
+    //render(root, store)
 }
 
 const render = async (root, state) => {
@@ -37,8 +62,6 @@ const App = (state) => {
                     but generally help with discoverability of relevant imagery.
                 </p>
                 ${ImageOfTheDay(apod)}
-                <p>
-                ${Manifest('curiosity')}
             </section>
         </main>
         <footer></footer>
@@ -47,6 +70,7 @@ const App = (state) => {
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
+    getAllManifests();
     render(root, store)
 })
 
@@ -92,10 +116,10 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
-const Manifest = (rover) => {
-    getManifest(rover)
-    return ('<p>${manifest}</p>')
+const getAllManifests = () => {
+    store.rovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()))
 }
+
 
 // ------------------------------------------------------  API CALLS
 
@@ -111,9 +135,8 @@ const getImageOfTheDay = (state) => {
 
 const getManifest = (rover) => {
     console.log("GOT HERE: MANIF");
-    fetch(`http://localhost:3000/manifest/`)
+    fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
-        .then(data => console.log(data));
-    return '5'
-
+        .then(manifest => updateManifest(store, manifest, rover));
+    //.then(data => console.log(data));
 }
