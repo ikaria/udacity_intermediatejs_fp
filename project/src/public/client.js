@@ -37,6 +37,8 @@ const App = (state) => {
                     but generally help with discoverability of relevant imagery.
                 </p>
                 ${ImageOfTheDay(apod)}
+                <p>
+                ${Manifest('curiosity')}
             </section>
         </main>
         <footer></footer>
@@ -66,9 +68,7 @@ const Greeting = (name) => {
 // Example of a pure function that renders infomation requested from the backend
 const ImageOfTheDay = (apod) => {
 
-    // If image does not already exist, or it is not from today -- request it again
-    const today = new Date()
-    if (!apod || apod.image.date !== today.getDate()) {
+    if (!apod || apod === '') {
         getImageOfTheDay(store)
         apod = store.apod;
     }
@@ -92,14 +92,28 @@ const ImageOfTheDay = (apod) => {
     }
 }
 
+const Manifest = (rover) => {
+    getManifest(rover)
+    return ('<p>${manifest}</p>')
+}
+
 // ------------------------------------------------------  API CALLS
 
 // Example API call
 const getImageOfTheDay = (state) => {
-    let { apod } = state
-
+    //let { apod } = state
+    console.log("GOT HERE: IMAGE");
     fetch(`http://localhost:3000/apod/`)
         .then(res => res.json())
         .then(apod => updateStore(store, { apod }));
+
+}
+
+const getManifest = (rover) => {
+    console.log("GOT HERE: MANIF");
+    fetch(`http://localhost:3000/manifest/`)
+        .then(res => res.json())
+        .then(data => console.log(data));
+    return '5'
 
 }

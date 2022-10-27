@@ -25,17 +25,14 @@ app.get('/apod', async (req, res) => {
     }
 });
 
-/*
 app.get('/manifest', async (req, res) => {
     try {
-        https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&page=2&api_key=DEMO_KEY
-        let manifest = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifest?api_key=${process.env.API_KEY}`)
+        let manifest = await fetch(`https://api.nasa.gov/mars-photos/api/v1/manifests/curiosity?api_key=${process.env.API_KEY}`)
             .then(res => res.json())
         res.send({ manifest })
     } catch (err) {
         console.log('error:', err);
     }
 });
-*/
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
