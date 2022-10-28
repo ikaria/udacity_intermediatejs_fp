@@ -13,6 +13,17 @@ const updateStore = (store, newState) => {
     render(root, store)
 }
 
+const hideAllTabContent = () => {
+    const allTabContents = document.getElementsByClassName("tabContent");
+    Array.from(allTabContents).forEach(content => content.style.display = "none");
+}
+
+const showTabContent = (contentId) => {
+
+    const content = document.getElementById(contentId);
+    content.style.display = "block"
+}
+
 const updateManifest = (store, newState, rover) => {
     let manifest;
     switch (rover) {
@@ -71,6 +82,8 @@ const App = (state) => {
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
     getAllManifests();
+    hideAllTabContent();
+    showTabContent("root");
     render(root, store)
 })
 

@@ -10,7 +10,31 @@
 
 <body>
     <main>
-        <div id="root">
+        <!-- Tab links -->
+        <div class="tabs">
+            <button class="tablinks" onclick="showHome(event, 'home')">Home</button>
+            <button class="roverButton" onclick="showRoverInfo(event, 'curiosity')">Curiosity</button>
+            <button class="roverButton" onclick="showRoverInfo(event, 'opportunity')">Opportunity</button>
+            <button class="roverButton" onclick="showRoverInfo(event, 'spirit')">Spirit</button>
+        </div>
+
+        <!-- Tab content -->
+        <div id="Curiosity" class="tabContent">
+            <h3>Curiosity</h3>
+            <p>Content goes here.</p>
+        </div>
+
+        <div id="Opportunity" class="tabContent">
+            <h3>Opportunity</h3>
+            <p>Content goes here.</p>
+        </div>
+
+        <div id="Spirit" class="tabContent">
+            <h3>Spirit</h3>
+            <p>Content goes here.</p>
+        </div>
+        <!-- root -->
+        <div id="root" class="tabContent">
             <h1>Loading...</h1>
         </div>
     </main>
