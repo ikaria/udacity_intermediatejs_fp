@@ -6,7 +6,7 @@ let store = {
 }
 
 // add our markup to the page
-const root = document.getElementById('root')
+const root = document.getElementById('home')
 
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState)
@@ -52,6 +52,26 @@ const render = async (root, state) => {
     root.innerHTML = App(state)
 }
 
+const showRoverInfo = (rover) => {
+    hideAllTabContent();
+    showTabContent(rover);
+}
+
+function setupButtons() {
+    document.getElementById("curiosityButton").addEventListener('click', function () {
+        showRoverInfo('curiosity');
+    });
+    document.getElementById("opportunityButton").addEventListener('click', function () {
+        showRoverInfo('opportunity');
+    });
+    document.getElementById("spiritButton").addEventListener('click', function () {
+        showRoverInfo('spirit');
+    });
+    document.getElementById("homeButton").addEventListener('click', function () {
+        showRoverInfo('home');
+    });
+}
+
 
 // create content
 const App = (state) => {
@@ -83,7 +103,8 @@ const App = (state) => {
 window.addEventListener('load', () => {
     getAllManifests();
     hideAllTabContent();
-    showTabContent("root");
+    setupButtons();
+    showTabContent("home");
     render(root, store)
 })
 
