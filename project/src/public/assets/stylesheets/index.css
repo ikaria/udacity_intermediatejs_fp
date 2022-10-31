@@ -16,23 +16,52 @@ main {
   padding: 20px;
 }
 
+.gallery-grid {
+  display: grid;
+}
+
+.gallery-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-item>img {
+  display: flex;
+  width: 98%;
+  height: 98%;
+  object-fit: cover;
+  align-self: center;
+}
+
 footer {
   /* footer styles */
 }
 
 /* -------------------  TABLET  --------------------- */
 @media (min-width: 768px) {
+
   /* use mobile */
+  .gallery-grid {
+    grid-template-columns: auto auto;
+  }
 }
 
 /* -------------------  DESKTOP  -------------------- */
 
 @media (min-width: 1224px) {
+
   /* use mobile */
+  .gallery-grid {
+    grid-template-columns: auto auto auto;
+  }
 }
 
 /* -------------------  LARGE SCREENS  -------------- */
 
 @media (min-width: 1824px) {
+
   /* use mobile */
+  .gallery-grid {
+    grid-template-columns: auto auto auto auto;
+  }
 }
