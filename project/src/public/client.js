@@ -46,7 +46,7 @@ const updateManifest = (store, newState, rover) => {
 
     store = Object.assign(store, { manifest })
 
-    //render(root, store)
+    render(root, store)
 }
 
 const updatePhotos = (store, newState, rover) => {
@@ -70,7 +70,7 @@ const updatePhotos = (store, newState, rover) => {
 
     store = Object.assign(store, { photos })
 
-    //render(root, store)
+    render(root, store)
 }
 
 const render = async (root, state) => {
@@ -163,7 +163,7 @@ window.addEventListener('load', () => {
     hideAllTabContent();
     setupButtons();
     //getPhotos('curiosity');
-    loadPhotos('curiosity');
+    //loadPhotos('curiosity');
     showTabContent("home");
     render(root, store)
 })
@@ -235,7 +235,7 @@ const getManifest = (rover) => {
     //.then(data => console.log(data));
 }
 
-const getPhotos = async (rover) => {
+const getPhotos = (rover) => {
     console.log("CHECK: PHOTOS");
     fetch(`http://localhost:3000/photos/${rover}`)
         .then(res => res.json())
