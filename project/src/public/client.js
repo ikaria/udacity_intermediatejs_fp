@@ -152,7 +152,7 @@ const App = (state) => {
                     explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
                     but generally help with discoverability of relevant imagery.
                 </p>
-                ${ShowPhoto(photos)}
+                ${RoverPhotos(photos, 'opportunity')}
             </section>
         </main>
         <footer></footer>
@@ -243,17 +243,22 @@ const getManifest = async (rover) => {
     //.then(data => console.log(data));
 }
 
-const getPhotos = (rover) => {
+const getPhotos = (rover, max_date) => {
     console.log("CHECK: PHOTOS");
-    fetch(`http://localhost:3000/photos/${rover}`)
+    fetch(`http://localhost:3000/photos/${rover}/${max_date}`)
         .then(res => res.json())
         .then(photos => updatePhotos(store, photos, rover));
     //.then(data => console.log(data));
 }
 
-const ShowPhoto = (photos) => {
+const RoverPhotos = (photos, rover) => {
+    console.log("MANIFEST FOR: " + rover);
+    console.log(store.manifest[rover]);
+    const max_date = store.manifest[rover].max_date;
+    console.log(max_date);
     if (Object.keys(photos).length === 0) {
-        getPhotos('curiosity')
+        getPhotos(rover, max_date)
+        //getPhotos(rover, max_date)
         photos = store.photos;
     }
 
@@ -263,8 +268,10 @@ const ShowPhoto = (photos) => {
             loading rover photo...
         `);
 
+    const image = photos[rover];
+
     return (`
-            <img src="${photos.curiosity[0].img_src}"/>
+            <img src="${image[0].img_src}"/>
         `)
 }
 

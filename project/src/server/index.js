@@ -35,9 +35,10 @@ app.get('/manifest/:rover', async (req, res) => {
     }
 });
 
-app.get('/photos/:rover', async (req, res) => {
+app.get('/photos/:rover/:date', async (req, res) => {
+    //let photos = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/spirit/photos?earth_date=2010-3-21&api_key=${process.env.API_KEY}`)
     try {
-        let photos = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${req.params.rover}/photos?earth_date=2015-6-3&api_key=${process.env.API_KEY}`)
+        let photos = await fetch(`https://api.nasa.gov/mars-photos/api/v1/rovers/${req.params.rover}/photos?earth_date=${req.params.date}&api_key=${process.env.API_KEY}`)
             .then(res => res.json())
         res.send({ photos })
     } catch (err) {
