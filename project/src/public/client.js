@@ -3,6 +3,7 @@ let store = {
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: {},
+    manifestsLoaded: 0,
     photos: {},
 }
 
@@ -44,12 +45,13 @@ const updateManifest = (store, newState, rover) => {
             break;
     }
 
+    store.manifestsLoaded += 1;
     store = Object.assign(store, { manifest })
-
-    render(root, store)
+    if (store.manifestsLoaded == 3)
+        render(root, store)
 }
 
-const updatePhotos = (store, newState, rover) => {
+const updatePhotos = async (store, newState, rover) => {
     let photos;
     switch (rover) {
         case 'curiosity':
@@ -70,7 +72,7 @@ const updatePhotos = (store, newState, rover) => {
 
     store = Object.assign(store, { photos })
 
-    render(root, store)
+    await render(root, store)
 }
 
 const render = async (root, state) => {
@@ -160,12 +162,18 @@ const App = (state) => {
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
     getAllManifests();
+    /*
+    while (!store.manifest.hasOwnProperty('curiosity')) {
+        console.log("NO curiosity");
+    }
+    */
+    //while(store.manifest.)
     hideAllTabContent();
     setupButtons();
     //getPhotos('curiosity');
     //loadPhotos('curiosity');
     showTabContent("home");
-    render(root, store)
+    //render(root, store)
 })
 
 // ------------------------------------------------------  COMPONENTS
@@ -227,7 +235,7 @@ const getImageOfTheDay = (state) => {
 
 }
 
-const getManifest = (rover) => {
+const getManifest = async (rover) => {
     console.log("CHECK: MANIF");
     fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
@@ -251,9 +259,13 @@ const ShowPhoto = (photos) => {
 
     //no image yet, return
     if (Object.keys(photos).length === 0)
-        return;
+        return (`
+            loading rover photo...
+        `);
 
     return (`
-            <img src="${photos.curiosity[0].img_src}" height="350px" width="100%" />
+            <img src="${photos.curiosity[0].img_src}"/>
         `)
 }
+
+            //<img src="${photos.curiosity[0].img_src}" height="350px" width="100%" />
