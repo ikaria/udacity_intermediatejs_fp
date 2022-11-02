@@ -1,5 +1,5 @@
 let store = {
-    user: { name: "Student" },
+    currentTab: 'curiosity',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: {},
@@ -8,7 +8,7 @@ let store = {
 }
 
 // add our markup to the page
-const root = document.getElementById('home')
+const root = document.getElementById('root')
 
 const updateStore = (store, newState) => {
     store = Object.assign(store, newState)
@@ -79,24 +79,65 @@ const render = async (root, state) => {
     root.innerHTML = App(state)
 }
 
-const showRoverInfo = (rover) => {
-    hideAllTabContent();
-    showTabContent(rover);
+const Tab = (tabName) => {
+    const formattedName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+    return (`${formattedName}`);
+}
+
+const roverDescription = (rover) => {
+    const landingDate = `<div><b>Landing Date: </b>` + store.manifest[rover].landing_date + `</div>`;
+    const launchDate = `<div><b>Launch Date: </b>` + store.manifest[rover].launch_date + `</div>`;
+    const maxDate = `<div><b>Date of Last Available Photos: </b>` + store.manifest[rover].max_date + `</div>`;
+    const status = `<div><b>Status: </b>` + store.manifest[rover].status + `</div>`;
+    return (`${landingDate} ${launchDate} ${maxDate} ${status}`);
+}
+
+const homeDescription = () => {
+    return (`this is the home description`);
+}
+
+const Description = (tabName) => {
+    if (tabName === 'home')
+        return homeDescription();
+    else
+        return roverDescription(tabName);
+}
+
+const Photos = (tabName) => {
+    const photos = 'photos wip';
+    return (`${photos} `);
+}
+
+const loadRoverContent = (rover) => {
+    if (!store.manifest.hasOwnProperty(rover)) {
+        return (`${rover} content loading...`);
+    }
+
+    loadManifestInfo(rover);
+    loadRoverPhotos(rover);
+    return (
+        ``
+    )
 }
 
 function setupButtons() {
     document.getElementById("curiosityButton").addEventListener('click', function () {
-        showRoverInfo('curiosity');
+        setCurrentTab(store, 'curiosity');
     });
     document.getElementById("opportunityButton").addEventListener('click', function () {
-        showRoverInfo('opportunity');
+        setCurrentTab(store, 'opportunity');
     });
     document.getElementById("spiritButton").addEventListener('click', function () {
-        showRoverInfo('spirit');
+        setCurrentTab(store, 'spirit');
     });
     document.getElementById("homeButton").addEventListener('click', function () {
-        showRoverInfo('home');
+        setCurrentTab(store, 'home');
     });
+}
+
+const setCurrentTab = (state, tabToSet) => {
+    state.currentTab = tabToSet;
+    render(root, state);
 }
 
 async function loadPhotos(photos) {
@@ -105,75 +146,30 @@ async function loadPhotos(photos) {
     document.getElementById('gallery').innerHTML += '<div class="gallery-item"><img src="./assets/images/rover.webp"></div>';
 }
 
-/*
-// create content
 const App = (state) => {
-    let { rovers, apod } = state
+    let { currentTab } = state
 
     return `
-        <header></header>
         <main>
-            ${Greeting(store.user.name)}
             <section>
-                <h3>Put things on the page!</h3>
-                <p>Here is an example section.</p>
+                <h3>${Tab(currentTab)}</h3>
                 <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
+                    ${Description(currentTab)}
                 </p>
-                ${ImageOfTheDay(apod)}
+                <p>
+                    ${Photos(currentTab)}
+                </p>
             </section>
         </main>
-        <footer></footer>
-    `
-}
-*/
-
-
-const App = (state) => {
-    let { rovers, apod, photos } = state
-
-    return `
-        <header></header>
-        <main>
-            ${Greeting(store.user.name)}
-            <section>
-                <h3>Put things on the page!</h3>
-                <p>Here is an example section.</p>
-                <p>
-                    One of the most popular websites at NASA is the Astronomy Picture of the Day. In fact, this website is one of
-                    the most popular websites across all federal agencies. It has the popular appeal of a Justin Bieber video.
-                    This endpoint structures the APOD imagery and associated metadata so that it can be repurposed for other
-                    applications. In addition, if the concept_tags parameter is set to True, then keywords derived from the image
-                    explanation are returned. These keywords could be used as auto-generated hashtags for twitter or instagram feeds;
-                    but generally help with discoverability of relevant imagery.
-                </p>
-                ${RoverPhotos(photos, 'opportunity')}
-            </section>
-        </main>
-        <footer></footer>
     `
 }
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
     getAllManifests();
-    /*
-    while (!store.manifest.hasOwnProperty('curiosity')) {
-        console.log("NO curiosity");
-    }
-    */
-    //while(store.manifest.)
-    hideAllTabContent();
+    //hideAllTabContent();
     setupButtons();
-    //getPhotos('curiosity');
-    //loadPhotos('curiosity');
-    showTabContent("home");
-    //render(root, store)
+    //showTabContent("home");
 })
 
 // ------------------------------------------------------  COMPONENTS
@@ -182,13 +178,13 @@ window.addEventListener('load', () => {
 const Greeting = (name) => {
     if (name) {
         return `
-            <h1>Welcome, ${name}!</h1>
-        `
+        < h1 > Welcome, ${name} !</h1 >
+            `
     }
 
     return `
-        <h1>Hello!</h1>
-    `
+            < h1 > Hello!</h1 >
+                `
 }
 
 // Example of a pure function that renders infomation requested from the backend
@@ -206,20 +202,20 @@ const ImageOfTheDay = (apod) => {
     // check if the photo of the day is actually type video!
     if (apod.media_type === "video") {
         return (`
-            <p>See today's featured video <a href="${apod.url}">here</a></p>
-            <p>${apod.title}</p>
-            <p>${apod.explanation}</p>
-        `)
+                < p > See today's featured video <a href="${apod.url}">here</a></p>
+                    < p > ${apod.title}</p >
+                        <p>${apod.explanation}</p>
+    `)
     } else {
         return (`
-            <img src="${apod.image.url}" height="350px" width="100%" />
+        < img src = "${apod.image.url}" height = "350px" width = "100%" />
             <p>${apod.image.explanation}</p>
-        `)
+    `)
     }
 }
 
 const getAllManifests = () => {
-    store.rovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()))
+    store.rovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()));
 }
 
 
@@ -235,7 +231,7 @@ const getImageOfTheDay = (state) => {
 
 }
 
-const getManifest = async (rover) => {
+const getManifest = (rover) => {
     console.log("CHECK: MANIF");
     fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
@@ -258,7 +254,6 @@ const RoverPhotos = (photos, rover) => {
     console.log(max_date);
     if (Object.keys(photos).length === 0) {
         getPhotos(rover, max_date)
-        //getPhotos(rover, max_date)
         photos = store.photos;
     }
 
@@ -274,5 +269,3 @@ const RoverPhotos = (photos, rover) => {
             <img src="${image[0].img_src}"/>
         `)
 }
-
-            //<img src="${photos.curiosity[0].img_src}" height="350px" width="100%" />
