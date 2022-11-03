@@ -1,5 +1,5 @@
 let store = {
-    currentTab: 'curiosity',
+    currentTab: 'home',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: {},
@@ -51,7 +51,7 @@ const updateManifest = (store, newState, rover) => {
         render(root, store)
 }
 
-const updatePhotos = async (store, newState, rover) => {
+const updatePhotos = (store, newState, rover) => {
     let photos;
     switch (rover) {
         case 'curiosity':
@@ -72,7 +72,7 @@ const updatePhotos = async (store, newState, rover) => {
 
     store = Object.assign(store, { photos })
 
-    await render(root, store)
+    render(root, store)
 }
 
 const render = async (root, state) => {
@@ -93,7 +93,9 @@ const roverDescription = (rover) => {
 }
 
 const homeDescription = () => {
-    return (`this is the home description`);
+    const homePhoto = `<div><img src="./assets/images/rover.webp" width="500" height="350px"></div>`;
+    const info = `<div> Select a Mars Rover to View Latest Mission Photos</div>`;
+    return (`${homePhoto} ${info}`);
 }
 
 const Description = (tabName) => {
@@ -104,20 +106,40 @@ const Description = (tabName) => {
 }
 
 const Photos = (tabName) => {
-    const photos = 'photos wip';
-    return (`${photos} `);
-}
+    if (tabName === 'home')
+        return ` `
 
-const loadRoverContent = (rover) => {
-    if (!store.manifest.hasOwnProperty(rover)) {
-        return (`${rover} content loading...`);
+    const rover = tabName;
+
+    const max_date = store.manifest[rover].max_date;
+    if (!Object.hasOwn(store.photos, tabName)) {
+        getPhotos(rover, max_date)
     }
 
-    loadManifestInfo(rover);
-    loadRoverPhotos(rover);
-    return (
-        ``
-    )
+    //no image yet, return
+    if (!Object.hasOwn(store.photos, tabName)) {
+        return (`
+            loading rover photo...
+        `);
+    }
+
+
+    /*
+    return (`
+            <img src="${images[0].img_src}"/>
+        `)
+    */
+
+    const galleryStart = `<div class="gallery-grid" id="gallery">`
+    const galleryEnd = `</div>`
+
+    const images = store.photos[rover];
+    let embeddedPhotos = '';
+    images.forEach(image => {
+        embeddedPhotos += `<div class="gallery-item"><img src=` + image.img_src + `></div>`
+    });
+
+    return (`${galleryStart} ${embeddedPhotos} ${galleryEnd}`);
 }
 
 function setupButtons() {
@@ -143,49 +165,33 @@ const setCurrentTab = (state, tabToSet) => {
 async function loadPhotos(photos) {
     //let photo = store.photos.curiosity[0].img_src;
     await getPhotos('curiosity');
-    document.getElementById('gallery').innerHTML += '<div class="gallery-item"><img src="./assets/images/rover.webp"></div>';
+    document.getElementById('gallery').innerHTML += '<div class="gallery-item"><img src="./assets/images/rover.webp" height=350px width=100%></div>';
 }
 
 const App = (state) => {
     let { currentTab } = state
 
     return `
-        <main>
-            <section>
-                <h3>${Tab(currentTab)}</h3>
-                <p>
-                    ${Description(currentTab)}
-                </p>
-                <p>
-                    ${Photos(currentTab)}
-                </p>
-            </section>
-        </main>
+        <section>
+            <h3>${Tab(currentTab)}</h3>
+            <p>
+                ${Description(currentTab)}
+            </p>
+            <p>
+                ${Photos(currentTab)}
+            </p>
+        </section>
     `
 }
 
 // listening for load event because page should load before any JS is called
 window.addEventListener('load', () => {
     getAllManifests();
-    //hideAllTabContent();
     setupButtons();
-    //showTabContent("home");
 })
 
 // ------------------------------------------------------  COMPONENTS
 
-// Pure function that renders conditional information -- THIS IS JUST AN EXAMPLE, you can delete it.
-const Greeting = (name) => {
-    if (name) {
-        return `
-        < h1 > Welcome, ${name} !</h1 >
-            `
-    }
-
-    return `
-            < h1 > Hello!</h1 >
-                `
-}
 
 // Example of a pure function that renders infomation requested from the backend
 const ImageOfTheDay = (apod) => {
@@ -202,15 +208,15 @@ const ImageOfTheDay = (apod) => {
     // check if the photo of the day is actually type video!
     if (apod.media_type === "video") {
         return (`
-                < p > See today's featured video <a href="${apod.url}">here</a></p>
-                    < p > ${apod.title}</p >
-                        <p>${apod.explanation}</p>
-    `)
+            < p > See today's featured video <a href="${apod.url}">here</a></p>
+                < p > ${apod.title}</p >
+                    <p>${apod.explanation}</p>
+`)
     } else {
         return (`
-        < img src = "${apod.image.url}" height = "350px" width = "100%" />
-            <p>${apod.image.explanation}</p>
-    `)
+    < img src = "${apod.image.url}" height = "350px" width = "100%" />
+        <p>${apod.image.explanation}</p>
+`)
     }
 }
 
@@ -244,14 +250,10 @@ const getPhotos = (rover, max_date) => {
     fetch(`http://localhost:3000/photos/${rover}/${max_date}`)
         .then(res => res.json())
         .then(photos => updatePhotos(store, photos, rover));
-    //.then(data => console.log(data));
 }
 
 const RoverPhotos = (photos, rover) => {
-    console.log("MANIFEST FOR: " + rover);
-    console.log(store.manifest[rover]);
     const max_date = store.manifest[rover].max_date;
-    console.log(max_date);
     if (Object.keys(photos).length === 0) {
         getPhotos(rover, max_date)
         photos = store.photos;
