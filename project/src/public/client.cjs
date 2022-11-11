@@ -1,3 +1,13 @@
+//const { Map } = require('immutable');
+const testM = Immutable.Map({
+    user: Immutable.Map({
+        first_name: 'John',
+        last_name: 'Doe'
+    })
+});
+
+console.log(testM);
+
 let store = {
     currentTab: 'home',
     apod: '',
@@ -13,7 +23,6 @@ const root = document.getElementById('root')
 const render = async (root, state) => {
     root.innerHTML = App(state)
 }
-
 
 const App = (state) => {
     let { currentTab } = state
@@ -42,18 +51,26 @@ const getAllManifests = () => {
 }
 
 function setupButtons() {
-    document.getElementById("curiosityButton").addEventListener('click', function () {
-        setCurrentTab(store, 'curiosity');
-    });
-    document.getElementById("opportunityButton").addEventListener('click', function () {
-        setCurrentTab(store, 'opportunity');
-    });
-    document.getElementById("spiritButton").addEventListener('click', function () {
-        setCurrentTab(store, 'spirit');
-    });
-    document.getElementById("homeButton").addEventListener('click', function () {
-        setCurrentTab(store, 'home');
-    });
+
+    const tabs = createTabNames(store.rovers);
+    const buttons = createButtonNames(tabs);
+
+    for (let i = 0; i < tabs.length; i++) {
+        document.getElementById(buttons[i]).addEventListener('click', function () {
+            setCurrentTab(store, tabs[i]);
+        });
+    }
+}
+
+const createTabNames = (roverArray) => {
+    const tabArray = roverArray.map(rover => rover.toLowerCase());
+    tabArray.push("home");
+    return tabArray;
+}
+
+const createButtonNames = (tabArray) => {
+    const buttonArray = tabArray.map(tab => tab + "Button");
+    return buttonArray;
 }
 
 const setCurrentTab = (state, tabToSet) => {
@@ -61,36 +78,7 @@ const setCurrentTab = (state, tabToSet) => {
     render(root, state);
 }
 
-
 // ------------------------------------------------------  COMPONENTS
-
-
-// Example of a pure function that renders infomation requested from the backend
-const ImageOfTheDay = (apod) => {
-
-    if (!apod || apod === '') {
-        getImageOfTheDay(store)
-        apod = store.apod;
-    }
-
-    //no image yet, return
-    if (apod === '')
-        return;
-
-    // check if the photo of the day is actually type video!
-    if (apod.media_type === "video") {
-        return (`
-            < p > See today's featured video <a href="${apod.url}">here</a></p>
-                < p > ${apod.title}</p >
-                    <p>${apod.explanation}</p>
-`)
-    } else {
-        return (`
-    < img src = "${apod.image.url}" height = "350px" width = "100%" />
-        <p>${apod.image.explanation}</p>
-`)
-    }
-}
 
 const Tab = (tabName) => {
     const formattedName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
