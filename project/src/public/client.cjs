@@ -44,6 +44,7 @@ const App = (state) => {
 window.addEventListener('load', () => {
     getAllManifests();
     setupButtons();
+    render(root, store);
 })
 
 const getAllManifests = () => {
