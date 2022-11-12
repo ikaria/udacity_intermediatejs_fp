@@ -8,14 +8,14 @@ const testM = Immutable.Map({
 
 console.log(testM);
 
-let store = {
+let store = Immutable.Map({
     currentTab: 'home',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: {},
     manifestsLoaded: 0,
     photos: {},
-}
+});
 
 // add our markup to the page
 const root = document.getElementById('root')
@@ -25,7 +25,7 @@ const render = async (root, state) => {
 }
 
 const App = (state) => {
-    let { currentTab } = state
+    const currentTab = state.get('currentTab');
 
     return `
         <section>
@@ -47,12 +47,13 @@ window.addEventListener('load', () => {
 })
 
 const getAllManifests = () => {
-    store.rovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()));
+    const allRovers = store.get('rovers');
+    allRovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()));
 }
 
 function setupButtons() {
 
-    const tabs = createTabNames(store.rovers);
+    const tabs = createTabNames(store.get('rovers'));
     const buttons = createButtonNames(tabs);
 
     for (let i = 0; i < tabs.length; i++) {
@@ -74,8 +75,8 @@ const createButtonNames = (tabArray) => {
 }
 
 const setCurrentTab = (state, tabToSet) => {
-    state.currentTab = tabToSet;
-    render(root, state);
+    store = state.set('currentTab', tabToSet);
+    render(root, store);
 }
 
 // ------------------------------------------------------  COMPONENTS
@@ -86,11 +87,18 @@ const Tab = (tabName) => {
 }
 
 const roverDescription = (rover) => {
-    const landingDate = `<div><b>Landing Date: </b>` + store.manifest[rover].landing_date + `</div>`;
-    const launchDate = `<div><b>Launch Date: </b>` + store.manifest[rover].launch_date + `</div>`;
-    const maxDate = `<div><b>Date of Last Available Photos: </b>` + store.manifest[rover].max_date + `</div>`;
-    const status = `<div><b>Status: </b>` + store.manifest[rover].status + `</div>`;
-    return (`${landingDate} ${launchDate} ${maxDate} ${status}`);
+
+    const landing_date = store.getIn(['manifest', rover, 'landing_date'])
+    const launch_date = store.getIn(['manifest', rover, 'launch_date'])
+    const max_date = store.getIn(['manifest', rover, 'max_date'])
+    const status = store.getIn(['manifest', rover, 'status'])
+
+    const hLandingDate = `<div><b>Landing Date: </b>` + landing_date + `</div>`;
+    const hLaunchDate = `<div><b>Launch Date: </b>` + launch_date + `</div>`;
+    const hMaxDate = `<div><b>Date of Last Available Photos: </b>` + max_date + `</div>`;
+    const hStatus = `<div><b>Status: </b>` + status + `</div>`;
+
+    return (`${hLandingDate} ${hLaunchDate} ${hMaxDate} ${hStatus}`);
 }
 
 const homeDescription = () => {
@@ -111,14 +119,15 @@ const Photos = (tabName) => {
         return ` `
 
     const rover = tabName;
+    const manifest = store.get('manifest');
 
-    const max_date = store.manifest[rover].max_date;
-    if (!Object.hasOwn(store.photos, tabName)) {
+    const max_date = manifest[rover].max_date;
+    if (!store.hasIn(['photos', rover])) {
         getPhotos(rover, max_date)
     }
 
     //no image yet, return
-    if (!Object.hasOwn(store.photos, tabName)) {
+    if (!store.hasIn(['photos', rover])) {
         return (`
             loading rover photo...
         `);
@@ -127,7 +136,7 @@ const Photos = (tabName) => {
     const galleryStart = `<div class="gallery-grid" id="gallery">`
     const galleryEnd = `</div>`
 
-    const images = store.photos[rover];
+    const images = store.getIn(['photos', rover]);
     let embeddedPhotos = '';
     images.forEach(image => {
         embeddedPhotos += `<div class="gallery-item"><img src=` + image.img_src + `></div>`
@@ -159,8 +168,8 @@ const getPhotos = (rover, max_date) => {
         .then(photos => updatePhotos(store, photos, rover));
 }
 
-const updateStore = (store, newState) => {
-    store = Object.assign(store, newState)
+const updateStore = (state, newState) => {
+    store = state.merge(newState);
     render(root, store)
 }
 
@@ -169,15 +178,15 @@ const updateManifest = (store, newState, rover) => {
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { curiosity });
+            manifest = Object.assign(store.get('manifest'), { curiosity });
             break;
         case 'opportunity':
             const opportunity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { opportunity });
+            manifest = Object.assign(store.get('manifest'), { opportunity });
             break;
         case 'spirit':
             const spirit = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { spirit });
+            manifest = Object.assign(store.get('manifest'), { spirit });
             break;
         default:
             break;
@@ -194,21 +203,23 @@ const updatePhotos = (store, newState, rover) => {
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.photos.photos;
-            photos = Object.assign(store.photos, { curiosity });
+            photos = Object.assign(store.get('photos'), { curiosity });
             break;
         case 'opportunity':
             const opportunity = newState.photos.photos
-            photos = Object.assign(store.photos, { opportunity });
+            photos = Object.assign(store.get('photos'), { opportunity });
             break;
         case 'spirit':
             const spirit = newState.photos.photos
-            photos = Object.assign(store.photos, { spirit });
+            photos = Object.assign(store.get('photos'), { spirit });
             break;
         default:
             break;
     }
 
-    store = Object.assign(store, { photos })
+    //both need to be maps?
+    photos = Immutable.fromJS({ photos })
+    store = store.merge(photos);
 
     render(root, store)
 }
