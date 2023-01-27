@@ -1,4 +1,5 @@
-//const { Map } = require('immutable');
+//import Immutable from "immutable";
+
 const testM = Immutable.Map({
     user: Immutable.Map({
         first_name: 'John',
@@ -12,7 +13,7 @@ let store = Immutable.Map({
     currentTab: 'home',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
-    manifest: {},
+    manifest: Immutable.Map({}),
     manifestsLoaded: 0,
     photos: {},
 });
@@ -84,7 +85,10 @@ const setCurrentTab = (state, tabToSet) => {
 
 const Tab = (tabName) => {
     const formattedName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
-    return (`${formattedName}`);
+    if (store.get('manifestsLoaded') == 3 || tabName === 'home')
+        return (`${formattedName}`);
+    else
+        return (`${'Loading...'}`);
 }
 
 const roverDescription = (rover) => {
@@ -111,13 +115,18 @@ const homeDescription = () => {
 const Description = (tabName) => {
     if (tabName === 'home')
         return homeDescription();
-    else
-        return roverDescription(tabName);
+    else {
+        if (store.get('manifestsLoaded') == 3)
+            return roverDescription(tabName);
+        else
+            return ' '
+    }
 }
 
 const Photos = (tabName) => {
-    if (tabName === 'home')
+    if (tabName === 'home') {
         return ` `
+    }
 
     const rover = tabName;
     const manifest = store.get('manifest');
@@ -174,29 +183,39 @@ const updateStore = (state, newState) => {
     render(root, store)
 }
 
-const updateManifest = (store, newState, rover) => {
+const updateManifest = (state, newState, rover) => {
     let manifest;
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.get('manifest'), { curiosity });
+            manifest = state.get('manifest').merge({ curiosity });
+            //manifest = Object.assign(state.get('manifest'), { curiosity });
             break;
         case 'opportunity':
             const opportunity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.get('manifest'), { opportunity });
+            manifest = state.get('manifest').merge({ opportunity });
+            //manifest = Object.assign(state.get('manifest'), { opportunity });
             break;
         case 'spirit':
             const spirit = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.get('manifest'), { spirit });
+            manifest = state.get('manifest').merge({ spirit });
+            //manifest = Object.assign(state.get('manifest'), { spirit });
             break;
         default:
             break;
     }
 
-    store.manifestsLoaded += 1;
-    store = Object.assign(store, { manifest })
-    if (store.manifestsLoaded == 3)
+    const currentManifests = state.get('manifestsLoaded') + 1;
+    const statePlusManifestCount = state.set('manifestsLoaded', currentManifests);
+    console.log(statePlusManifestCount.get('manifestsLoaded'));
+
+    manifest = Immutable.fromJS({ manifest });
+    store = statePlusManifestCount.merge(manifest);
+
+    if (store.get('manifestsLoaded') == 3) {
+        console.log("more than 3");
         render(root, store)
+    }
 }
 
 const updatePhotos = (store, newState, rover) => {
@@ -218,7 +237,6 @@ const updatePhotos = (store, newState, rover) => {
             break;
     }
 
-    //both need to be maps?
     photos = Immutable.fromJS({ photos })
     store = store.merge(photos);
 
