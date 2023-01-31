@@ -1,3 +1,16 @@
+const testM = Immutable.Map({
+    user: Immutable.Map({
+        first_name: 'John',
+        last_name: 'Doe'
+    })
+});
+
+console.log("TESTING IMMUTABLE.JS")
+const testM2 = testM.getIn(['user', 'first_name']);
+console.log(testM2);
+
+console.log("---------------------");
+
 let store = {
     currentTab: 'home',
     apod: '',
