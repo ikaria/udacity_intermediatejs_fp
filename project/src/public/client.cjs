@@ -11,14 +11,14 @@ console.log(testM2);
 
 console.log("---------------------");
 
-let store = {
+let store = Immutable.Map({
     currentTab: 'home',
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: {},
     manifestsLoaded: 0,
     photos: {},
-}
+});
 
 // add our markup to the page
 const root = document.getElementById('root')
@@ -29,7 +29,7 @@ const render = async (root, state) => {
 
 
 const App = (state) => {
-    let { currentTab } = state
+    let { currentTab } = state.toJS();
 
     return `
         <section>
@@ -51,7 +51,7 @@ window.addEventListener('load', () => {
 })
 
 const getAllManifests = () => {
-    store.rovers.forEach((rover) => getManifest(rover.toLocaleLowerCase()));
+    store.get('rovers').forEach((rover) => getManifest(rover.toLocaleLowerCase()));
 }
 
 function setupButtons() {
@@ -70,7 +70,7 @@ function setupButtons() {
 }
 
 const setCurrentTab = (state, tabToSet) => {
-    state.currentTab = tabToSet;
+    state.set("currentTab", tabToSet);
     render(root, state);
 }
 
@@ -111,10 +111,11 @@ const Tab = (tabName) => {
 }
 
 const roverDescription = (rover) => {
-    const landingDate = `<div><b>Landing Date: </b>` + store.manifest[rover].landing_date + `</div>`;
-    const launchDate = `<div><b>Launch Date: </b>` + store.manifest[rover].launch_date + `</div>`;
-    const maxDate = `<div><b>Date of Last Available Photos: </b>` + store.manifest[rover].max_date + `</div>`;
-    const status = `<div><b>Status: </b>` + store.manifest[rover].status + `</div>`;
+    const roverRef = store.toJS().manifest[rover];
+    const landingDate = `<div><b>Landing Date: </b>` + roverRef.landing_date + `</div>`;
+    const launchDate = `<div><b>Launch Date: </b>` + roverRef.launch_date + `</div>`;
+    const maxDate = `<div><b>Date of Last Available Photos: </b>` + roverRef.max_date + `</div>`;
+    const status = `<div><b>Status: </b>` + roverRef.status + `</div>`;
     return (`${landingDate} ${launchDate} ${maxDate} ${status}`);
 }
 
@@ -137,13 +138,13 @@ const Photos = (tabName) => {
 
     const rover = tabName;
 
-    const max_date = store.manifest[rover].max_date;
-    if (!Object.hasOwn(store.photos, tabName)) {
+    const max_date = store.toJS().manifest[rover].max_date;
+    if (!Object.hasOwn(store.toJS().photos, tabName)) {
         getPhotos(rover, max_date)
     }
 
     //no image yet, return
-    if (!Object.hasOwn(store.photos, tabName)) {
+    if (!Object.hasOwn(store.toJS().photos, tabName)) {
         return (`
             loading rover photo...
         `);
@@ -152,7 +153,7 @@ const Photos = (tabName) => {
     const galleryStart = `<div class="gallery-grid" id="gallery">`
     const galleryEnd = `</div>`
 
-    const images = store.photos[rover];
+    const images = store.toJS().photos[rover];
     let embeddedPhotos = '';
     images.forEach(image => {
         embeddedPhotos += `<div class="gallery-item"><img src=` + image.img_src + `></div>`
@@ -185,7 +186,8 @@ const getPhotos = (rover, max_date) => {
 }
 
 const updateStore = (store, newState) => {
-    store = Object.assign(store, newState)
+    store = store.merge(newState);
+    //store = Object.assign(store, newState)
     render(root, store)
 }
 
@@ -194,23 +196,24 @@ const updateManifest = (store, newState, rover) => {
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { curiosity });
+            manifest = Object.assign(store.toJS().manifest, { curiosity });
             break;
         case 'opportunity':
             const opportunity = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { opportunity });
+            manifest = Object.assign(store.toJS().manifest, { opportunity });
             break;
         case 'spirit':
             const spirit = newState.manifest.photo_manifest;
-            manifest = Object.assign(store.manifest, { spirit });
+            manifest = Object.assign(store.toJS().manifest, { spirit });
             break;
         default:
             break;
     }
 
     store.manifestsLoaded += 1;
-    store = Object.assign(store, { manifest })
-    if (store.manifestsLoaded == 3)
+    //store = Object.assign(store, { manifest })
+    store.merge({ manifest });
+    if (store.get("manifestsLoaded") === 3)
         render(root, store)
 }
 
