@@ -1,22 +1,6 @@
-//import Immutable from "immutable";
+//"immutable" imported in index.html;
 
-let testM = Immutable.Map({
-    normalfield: 2,
-    user: Immutable.Map({
-        first_name: 'John',
-        last_name: 'Doe'
-    })
-});
-
-console.log("TESTING IMMUTABLE.JS")
-testM = testM.setIn(['user', 'first_name'], 'Jane');
-const testM2 = testM.getIn(['user', 'first_name']);
-console.log(testM2);
-testM = testM.set('normalfield', 3);
-console.log("normalfield: " + testM.get('normalfield'));
-
-console.log("---------------------");
-
+//state stored as an immutable
 let store = Immutable.Map({
     currentTab: 'home',
     apod: '',
@@ -27,11 +11,11 @@ let store = Immutable.Map({
         spirit: {}
     }),
     manifestsLoaded: 0,
-    photos: {
+    photos: Immutable.Map({
         curiosity: {},
         opportunity: {},
         spirit: {}
-    },
+    }),
 });
 
 // add our markup to the page
@@ -44,7 +28,6 @@ const render = async (root, state) => {
 
 const App = (state) => {
     const currentTab = state.get("currentTab");
-    //let { currentTab } = state.toJS();
 
     return `
         <section>
@@ -65,67 +48,40 @@ window.addEventListener('load', () => {
     setupButtons();
 })
 
+//get manifests for all rovers
 const getAllManifests = () => {
     store.get('rovers').forEach((rover) => getManifest(rover.toLocaleLowerCase()));
 }
 
+//setup tab buttons with events
 function setupButtons() {
     document.getElementById("curiosityButton").addEventListener('click', function () {
-        setCurrentTab('curiosity');
+        store = store.set("currentTab", "curiosity");
+        render(root, store);
     });
     document.getElementById("opportunityButton").addEventListener('click', function () {
-        setCurrentTab('opportunity');
+        store = store.set("currentTab", "opportunity");
+        render(root, store);
     });
     document.getElementById("spiritButton").addEventListener('click', function () {
-        setCurrentTab('spirit');
+        store = store.set("currentTab", "spirit");
+        render(root, store);
     });
     document.getElementById("homeButton").addEventListener('click', function () {
-        setCurrentTab('home');
+        store = store.set("currentTab", "home");
+        render(root, store);
     });
-}
-
-const setCurrentTab = (tabToSet) => {
-    store = store.set("currentTab", tabToSet);
-    //state.set("currentTab", tabToSet);
-    render(root, store);
 }
 
 
 // ------------------------------------------------------  COMPONENTS
-
-
-// Example of a pure function that renders infomation requested from the backend
-const ImageOfTheDay = (apod) => {
-
-    if (!apod || apod === '') {
-        getImageOfTheDay(store)
-        apod = store.apod;
-    }
-
-    //no image yet, return
-    if (apod === '')
-        return;
-
-    // check if the photo of the day is actually type video!
-    if (apod.media_type === "video") {
-        return (`
-            < p > See today's featured video <a href="${apod.url}">here</a></p>
-                < p > ${apod.title}</p >
-                    <p>${apod.explanation}</p>
-`)
-    } else {
-        return (`
-    < img src = "${apod.image.url}" height = "350px" width = "100%" />
-        <p>${apod.image.explanation}</p>
-`)
-    }
-}
 
 const Tab = (tabName) => {
     const formattedName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
     return (`${formattedName}`);
 }
 
+//generate rover description
 const roverDescription = (rover) => {
     const roverRef = store.toJS().manifest[rover];
     const landingDate = `<div><b>Landing Date: </b>` + roverRef.landing_date + `</div>`;
@@ -135,6 +91,7 @@ const roverDescription = (rover) => {
     return (`${landingDate} ${launchDate} ${maxDate} ${status}`);
 }
 
+//get unique description for the home screen
 const homeDescription = () => {
     const homePhoto = `<div><img src="./assets/images/rover.webp" width="500" height="350px"></div>`;
     const info = `<div> Select a Mars Rover to View Latest Mission Photos</div>`;
@@ -148,36 +105,26 @@ const Description = (tabName) => {
         return roverDescription(tabName);
 }
 
-const Photos = (tabName) => {
-    if (tabName === 'home')
+const Photos = (rover) => {
+    if (rover === 'home')
         return ` `
 
-    const rover = tabName;
-
-
     const max_date = store.getIn(["manifest", rover, "max_date"]);
-    console.log("max_date: " + max_date);
-    //const max_date = store.toJS().manifest[rover].max_date;
     const photos = store.getIn(["photos", rover]);
-    //if (!Object.hasOwn(store.getIn("manifest", rover), tabName)) {
     if (Object.entries(photos).length === 0) {
-        //if (!Object.hasOwn(store.getIn("manifest", rover), tabName)) {
         getPhotos(rover, max_date)
     }
 
-    //no image yet, return
-    /*
-    if (!Object.hasOwn(store.toJS().photos, tabName)) {
+    //no image yet, return message
+    if (Object.entries(photos).length === 0) {
         return (`
             loading rover photo...
         `);
     }
-    */
 
     const galleryStart = `<div class="gallery-grid" id="gallery">`
     const galleryEnd = `</div>`
 
-    //const images = store.toJS().photos[rover];
     let embeddedPhotos = '';
     photos.forEach(image => {
         embeddedPhotos += `<div class="gallery-item"><img src=` + image.img_src + `></div>`
@@ -189,19 +136,10 @@ const Photos = (tabName) => {
 
 // ------------------------------------------------------  API CALLS
 
-const getImageOfTheDay = (state) => {
-    //let { apod } = state
-    fetch(`http://localhost:3000/apod/`)
-        .then(res => res.json())
-        .then(apod => updateStore(store, { apod }));
-
-}
-
 const getManifest = (rover) => {
     fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
         .then(manifest => updateManifest(manifest, rover));
-    //.then(manifest => updateManifest(store, manifest, rover));
 }
 
 const getPhotos = (rover, max_date) => {
@@ -210,82 +148,53 @@ const getPhotos = (rover, max_date) => {
         .then(photos => updatePhotos(photos, rover));
 }
 
-const updateStore = (store, newState) => {
-    store = store.merge(newState);
-    //store = Object.assign(store, newState)
-    render(root, store)
-}
-
 const updateManifest = (newState, rover) => {
-    let manifest;
-    let currManifest;
+
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.manifest.photo_manifest;
-            //currManifest = store.get("manifest").toJS();
-            //manifest = Object.assign(currManifest, { curiosity });
             store = store.setIn(["manifest", "curiosity"], curiosity)
-            console.log(store.getIn(["manifest", "curiosity"]));
             break;
         case 'opportunity':
             const opportunity = newState.manifest.photo_manifest;
-            //currManifest = store.get("manifest").toJS();
-            //manifest = Object.assign(currManifest, { opportunity });
             store = store.setIn(["manifest", "opportunity"], opportunity)
-            console.log(store.getIn(["manifest", "opportunity"]));
             break;
         case 'spirit':
             const spirit = newState.manifest.photo_manifest;
-            //currManifest = store.get("manifest").toJS();
-            //manifest = Object.assign(currManifest, { spirit });
             store = store.setIn(["manifest", "spirit"], spirit)
-            console.log(store.getIn(["manifest", "spirit"]));
             break;
         default:
             break;
     }
 
-
     let loaded = store.get("manifestsLoaded");
-    console.log("before: " + loaded);
     store = store.set("manifestsLoaded", loaded + 1);
-    //store = Object.assign(store, { manifest })
-    //store = store.set("manifest", manifest);
-    //store = store.merge({ manifest });
-    console.log("after" + store.get("manifestsLoaded"));
+
+    //all manifests loaded, render page
     if (store.get("manifestsLoaded") === 3) {
-        console.log("STORE");
-        console.log(store);
         render(root, store)
     }
 
 }
 
 const updatePhotos = (newState, rover) => {
-    let photos;
+
     switch (rover) {
         case 'curiosity':
             const curiosity = newState.photos.photos;
-            //photos = Object.assign(store.photos, { curiosity });
             store = store.setIn(["photos", "curiosity"], curiosity)
-            //photos = Object.assign(store.toJS().photos, { curiosity });
             break;
         case 'opportunity':
             const opportunity = newState.photos.photos
             store = store.setIn(["photos", "opportunity"], opportunity)
-            //photos = Object.assign(store.toJS().photos, { opportunity });
             break;
         case 'spirit':
             const spirit = newState.photos.photos
-            //photos = Object.assign(store.photos, { spirit });
             store = store.setIn(["photos", "spirit"], spirit)
-            //photos = Object.assign(store.toJS().photos, { spirit });
             break;
         default:
             break;
     }
-
-    //store = Object.assign(store, { photos })
 
     render(root, store)
 }
