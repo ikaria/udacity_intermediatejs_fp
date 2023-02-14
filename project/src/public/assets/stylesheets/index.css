@@ -7,10 +7,6 @@ body {
   min-height: 100vh;
 }
 
-header {
-  /* header styles */
-}
-
 main {
   flex: 1;
   padding: 20px;
@@ -31,10 +27,6 @@ main {
   height: 98%;
   object-fit: cover;
   align-self: center;
-}
-
-footer {
-  /* footer styles */
 }
 
 /* -------------------  TABLET  --------------------- */
