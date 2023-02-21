@@ -128,8 +128,8 @@ const Photos = (rover) => {
 
 // ------------------------------------------------------  API CALLS
 
-const getManifest = async (rover) => {
-    await fetch(`http://localhost:3000/manifest/${rover}`)
+const getManifest = (rover) => {
+    fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
         .then(obj => updateManifest(obj.manifest.photo_manifest, rover));
 }
