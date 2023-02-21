@@ -104,12 +104,11 @@ const Photos = (rover) => {
 
     const max_date = store.getIn(["manifest", rover, "max_date"]);
     const photos = store.getIn(["photos", rover]);
+
     if (typeof photos === 'undefined' || Object.entries(photos).length === 0) {
         getPhotos(rover, max_date)
-    }
 
-    //no image yet, return message
-    if (Object.entries(photos).length === 0) {
+        //no image yet, return message
         return (`
             loading rover photo...
         `);
@@ -129,10 +128,10 @@ const Photos = (rover) => {
 
 // ------------------------------------------------------  API CALLS
 
-const getManifest = (rover) => {
-    fetch(`http://localhost:3000/manifest/${rover}`)
+const getManifest = async (rover) => {
+    await fetch(`http://localhost:3000/manifest/${rover}`)
         .then(res => res.json())
-        .then(manifest => updateManifest(manifest, rover));
+        .then(obj => updateManifest(obj.manifest.photo_manifest, rover));
 }
 
 const getPhotos = (rover, max_date) => {
@@ -141,10 +140,18 @@ const getPhotos = (rover, max_date) => {
         .then(photos => updatePhotos(photos, rover));
 }
 
-const updateManifest = (newState, rover) => {
+const updateManifest = (manifest, rover) => {
 
-    const photos = newState.manifest.photo_manifest;
-    store = store.setIn(["manifest", rover], photos)
+    //clean up manifest data
+    const cleanManifest = {
+        landing_date: manifest.landing_date,
+        launch_date: manifest.launch_date,
+        max_date: manifest.max_date,
+        status: manifest.status
+    };
+
+    //store manifest in state
+    store = store.setIn(["manifest", rover], cleanManifest)
 
     let loaded = store.get("manifestsLoaded");
     store = store.set("manifestsLoaded", loaded + 1);
