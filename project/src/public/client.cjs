@@ -6,16 +6,10 @@ let store = Immutable.Map({
     apod: '',
     rovers: ['Curiosity', 'Opportunity', 'Spirit'],
     manifest: Immutable.Map({
-        curiosity: {},
-        opportunity: {},
-        spirit: {}
     }),
     manifestsLoaded: 0,
     photos: Immutable.Map({
-        curiosity: {},
-        opportunity: {},
-        spirit: {}
-    }),
+    })
 });
 
 // add our markup to the page
@@ -24,7 +18,6 @@ const root = document.getElementById('root')
 const render = async (root, state) => {
     root.innerHTML = App(state)
 }
-
 
 const App = (state) => {
     const currentTab = state.get("currentTab");
@@ -111,7 +104,7 @@ const Photos = (rover) => {
 
     const max_date = store.getIn(["manifest", rover, "max_date"]);
     const photos = store.getIn(["photos", rover]);
-    if (Object.entries(photos).length === 0) {
+    if (typeof photos === 'undefined' || Object.entries(photos).length === 0) {
         getPhotos(rover, max_date)
     }
 
@@ -126,8 +119,8 @@ const Photos = (rover) => {
     const galleryEnd = `</div>`
 
     let embeddedPhotos = '';
-    photos.forEach(image => {
-        embeddedPhotos += `<div class="gallery-item"><img src=` + image.img_src + `></div>`
+    photos.forEach(url => {
+        embeddedPhotos += `<div class="gallery-item"><img src=` + url + `></div>`
     });
 
     return (`${galleryStart} ${embeddedPhotos} ${galleryEnd}`);
@@ -150,22 +143,8 @@ const getPhotos = (rover, max_date) => {
 
 const updateManifest = (newState, rover) => {
 
-    switch (rover) {
-        case 'curiosity':
-            const curiosity = newState.manifest.photo_manifest;
-            store = store.setIn(["manifest", "curiosity"], curiosity)
-            break;
-        case 'opportunity':
-            const opportunity = newState.manifest.photo_manifest;
-            store = store.setIn(["manifest", "opportunity"], opportunity)
-            break;
-        case 'spirit':
-            const spirit = newState.manifest.photo_manifest;
-            store = store.setIn(["manifest", "spirit"], spirit)
-            break;
-        default:
-            break;
-    }
+    const photos = newState.manifest.photo_manifest;
+    store = store.setIn(["manifest", rover], photos)
 
     let loaded = store.get("manifestsLoaded");
     store = store.set("manifestsLoaded", loaded + 1);
@@ -179,22 +158,8 @@ const updateManifest = (newState, rover) => {
 
 const updatePhotos = (newState, rover) => {
 
-    switch (rover) {
-        case 'curiosity':
-            const curiosity = newState.photos.photos;
-            store = store.setIn(["photos", "curiosity"], curiosity)
-            break;
-        case 'opportunity':
-            const opportunity = newState.photos.photos
-            store = store.setIn(["photos", "opportunity"], opportunity)
-            break;
-        case 'spirit':
-            const spirit = newState.photos.photos
-            store = store.setIn(["photos", "spirit"], spirit)
-            break;
-        default:
-            break;
-    }
+    const photoURLs = newState.photos.photos.map(photo => photo.img_src);
+    store = store.setIn(["photos", rover], photoURLs)
 
     render(root, store)
 }
